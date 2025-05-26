@@ -10,9 +10,9 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,7 @@ fun AccountView(
 
     AppScaffold(
         title = "Account",
-        navController = navController
+        navController = navController,
     ) { padding ->
         Column(
             modifier = Modifier
@@ -55,8 +56,8 @@ fun AccountView(
         ) {
             Text(
                 text = "Account",
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.titleMedium
+                color = Color.Black,
+                style = MaterialTheme.typography.subtitle1
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -64,7 +65,10 @@ fun AccountView(
             // Change password
             Button(
                 onClick = { showChangePasswordDialog.value = true },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = MaterialTheme.colors.surface
+                )
             ) {
                 Text("Change Password")
             }
@@ -75,10 +79,16 @@ fun AccountView(
             Button(
                 onClick = { showDeleteDialog.value = true },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = MaterialTheme.colors.error
+                )
             ) {
-                Text("Delete Account", color = MaterialTheme.colorScheme.onError)
+                Text(
+                    text = "Delete Account",
+                    color = MaterialTheme.colors.onError
+                )
             }
+
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -182,12 +192,12 @@ fun DeleteAccountDialog(
         text = { Text("This will permanently delete your account and data. Continue?") },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Yes, delete", color = MaterialTheme.colorScheme.error)
+                Text("Yes, delete", color = MaterialTheme.colors.error)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f))
             }
         }
     )

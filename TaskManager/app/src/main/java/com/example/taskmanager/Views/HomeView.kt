@@ -1,6 +1,7 @@
 package com.example.taskmanager.Views
 
 import android.content.Intent
+import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -14,37 +15,41 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material.DismissDirection
 import androidx.compose.material.DismissValue
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberDismissState
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Card
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
+import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.taskmanager.AppScaffold
 import com.example.taskmanager.Data.Task
@@ -54,6 +59,7 @@ import com.example.taskmanager.Screen
 import com.example.taskmanager.ViewModels.SessionViewModel
 import com.example.taskmanager.ViewModels.TaskViewModel
 import com.example.taskmanager.drawerScreens
+import com.example.taskmanager.ui.theme.Purple40
 import com.example.taskmanager.util.UiEventDispatcher
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 
@@ -64,21 +70,21 @@ fun HomeView(
     sessionViewModel: SessionViewModel,
     navController: NavController,
     googleSignInClient: GoogleSignInClient,
-    googleSignInLauncher: ActivityResultLauncher<Intent>
+    googleSignInLauncher: ActivityResultLauncher<Intent>,
 ) {
     val currentUser by sessionViewModel.currentUser.collectAsState()
     val showLoginDialog = remember { mutableStateOf(currentUser == null) }
     var taskToDelete by remember { mutableStateOf<Task?>(null) }
 
     val currentBackStackEntry = navController.currentBackStackEntry
-    val snackbarMessage = currentBackStackEntry?.savedStateHandle?.remove<String>("snackbar_message")
+    val snackbarMessage =
+        currentBackStackEntry?.savedStateHandle?.remove<String>("snackbar_message")
 
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let {
             UiEventDispatcher.send(it)
         }
     }
-
 
     // Watch for auth changes to control login dialog
     LaunchedEffect(currentUser) {
@@ -110,12 +116,12 @@ fun HomeView(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(MaterialTheme.colors.secondary)
                 ) {
                     DrawerContent(
                         navController = navController,
                         sessionViewModel = sessionViewModel,
-                        googleSignInClient = googleSignInClient
+                        googleSignInClient = googleSignInClient,
                     ) {
                         navController.navigate(Screen.HomeScreen.route)
                     }
@@ -125,6 +131,7 @@ fun HomeView(
                 if (!showLoginDialog.value) {
                     FloatingActionButton(
                         modifier = Modifier.padding(20.dp),
+                        backgroundColor = MaterialTheme.colors.secondary,
                         contentColor = Color.White,
                         onClick = {
                             navController.navigate(Screen.AddScreen.route + "/new")
@@ -148,7 +155,7 @@ fun HomeView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f)
                 )
 
                 if (!showLoginDialog.value) {
@@ -193,60 +200,79 @@ fun HomeView(
                                 }
                             )
                         }
+
                     }
                 }
 
                 taskToDelete?.let { task ->
                     AlertDialog(
                         onDismissRequest = { taskToDelete = null },
-                        title = { Text("Delete Task", color = MaterialTheme.colorScheme.onSurface) },
+                        backgroundColor = MaterialTheme.colors.secondary, // ✅ White in light theme, dark in dark theme
+                        title = {
+                            Text(
+                                text = "Delete Task",
+                                color = MaterialTheme.colors.onSurface // ✅ Theme-aware text
+                            )
+                        },
                         text = {
                             Text(
-                                "Are you sure you want to delete \"${task.title}\"?",
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = "Are you sure you want to delete \"${task.title}\"?",
+                                color = MaterialTheme.colors.onSurface // ✅ Theme-aware text
                             )
                         },
                         confirmButton = {
                             TextButton(onClick = {
                                 viewModel.deleteTask(task)
                                 taskToDelete = null
-                            }) { Text("Delete") }
+                            }) {
+                                Text(
+                                    text = "Delete",
+                                    color = MaterialTheme.colors.error
+                                )
+                            }
                         },
                         dismissButton = {
-                            TextButton(onClick = { taskToDelete = null }) { Text("Cancel") }
+                            TextButton(onClick = { taskToDelete = null }) {
+                                Text(
+                                    text = "Cancel",
+                                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
                         }
                     )
                 }
+
             }
         }
     }
 }
 
-
 @Composable
 fun TaskItem(task: Task, onClick: () -> Unit) {
     Card(
+        backgroundColor = MaterialTheme.colors.surface,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, start = 8.dp, end = 8.dp)
+            .padding(8.dp)
             .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        )
+        elevation = 10.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = task.title,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colors.onSurface
+                )
             )
             Text(
                 text = task.description,
-                color = MaterialTheme.colorScheme.onSurface
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colors.onSurface
+                )
             )
-
         }
     }
 }
@@ -291,13 +317,13 @@ fun DrawerContent(
             Icon(
                 painter = painterResource(id = R.drawable.baseline_logout_24), // Replace with your logout icon
                 contentDescription = "Log out",
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = MaterialTheme.colors.onSurface,
                 modifier = Modifier.padding(end = 8.dp)
             )
             Text(
                 text = "Log out",
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleMedium
+                color = MaterialTheme.colors.onSurface,
+                style = MaterialTheme.typography.subtitle1
             )
         }
     }
@@ -309,15 +335,10 @@ fun DrawerItem(
     item: Screen,
     onDrawerItemClicked: () -> Unit
 ) {
-    val backgroundColor = if (selected)
-        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-    else
-        MaterialTheme.colorScheme.surface
+    val backgroundColor = MaterialTheme.colors.onSurface.copy(alpha = 0.1f)
 
-    val contentColor = if (selected)
-        MaterialTheme.colorScheme.primary
-    else
-        MaterialTheme.colorScheme.onSurface
+
+    val contentColor = MaterialTheme.colors.onSurface
 
     Row(
         modifier = Modifier
@@ -336,7 +357,7 @@ fun DrawerItem(
         Text(
             text = item.title,
             color = contentColor,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.subtitle1
         )
     }
 }

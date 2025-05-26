@@ -1,5 +1,6 @@
 package com.example.taskmanager
 
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,7 +19,7 @@ import kotlinx.coroutines.launch
 fun ProvideSnackbarHost(
     content: @Composable (SnackbarHostState) -> Unit
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarHostState = remember(MaterialTheme.colors) { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(snackbarHostState) {
@@ -36,5 +37,6 @@ fun ProvideSnackbarHost(
 
     content(snackbarHostState)
 }
+
 
 

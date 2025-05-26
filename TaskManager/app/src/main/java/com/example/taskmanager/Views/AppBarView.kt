@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -27,14 +28,14 @@ fun AppBarView(
         title = {
             Text(
                 text = title,
-                color = colorResource(id = R.color.white),
+                color = MaterialTheme.colors.onSurface,
                 modifier = Modifier
                     .padding(start = 4.dp)
                     .heightIn(max = 24.dp)
             )
         },
         elevation = 3.dp,
-        backgroundColor = colorResource(id = R.color.app_bar_color),
+        backgroundColor = MaterialTheme.colors.secondary,
         navigationIcon = {
             if (showBackButton) {
                 IconButton(onClick = { onBackNavClicked() }) {

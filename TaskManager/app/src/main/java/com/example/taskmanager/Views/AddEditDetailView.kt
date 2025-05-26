@@ -12,11 +12,12 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -93,7 +94,7 @@ fun AddEditDetailView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(MaterialTheme.colors.background)
                     .padding(padding)
                     .padding(horizontal = 16.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -117,39 +118,44 @@ fun AddEditDetailView(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Button(onClick = {
-                    if (viewModel.taskTitleState.isNotEmpty() &&
-                        viewModel.taskDescriptionState.isNotEmpty()
-                    ) {
-                        if (isEditMode) {
-                            viewModel.updateTask(
-                                Task(
-                                    id = id,
-                                    title = viewModel.taskTitleState.trim(),
-                                    description = viewModel.taskDescriptionState.trim()
+                Button(
+                    onClick = {
+                        if (viewModel.taskTitleState.isNotEmpty() &&
+                            viewModel.taskDescriptionState.isNotEmpty()
+                        ) {
+                            if (isEditMode) {
+                                viewModel.updateTask(
+                                    Task(
+                                        id = id,
+                                        title = viewModel.taskTitleState.trim(),
+                                        description = viewModel.taskDescriptionState.trim()
+                                    )
                                 )
-                            )
+                            } else {
+                                viewModel.addNewTask(
+                                    title = viewModel.taskTitleState,
+                                    description = viewModel.taskDescriptionState
+                                )
+                            }
+
+                            scope.launch {
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("snackbar_message", if (isEditMode) "Task updated" else "Task created")
+
+                                navController.popBackStack()
+                            }
                         } else {
-                            viewModel.addNewTask(
-                                title = viewModel.taskTitleState,
-                                description = viewModel.taskDescriptionState
-                            )
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Please fill in all fields")
+                            }
                         }
-
-                        scope.launch {
-                            navController.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.set("snackbar_message", if (isEditMode) "Task updated" else "Task created")
-
-                            navController.popBackStack()
-                        }
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Please fill in all fields")
-                        }
-                    }
-                })
-                {
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = MaterialTheme.colors.secondary,
+                        contentColor = MaterialTheme.colors.onSurface
+                    )
+                ) {
                     Text(
                         text = if (isEditMode)
                             stringResource(id = R.string.update_task)
@@ -172,16 +178,20 @@ fun TaskTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChanged,
-        label = { Text(text = label, color = MaterialTheme.colorScheme.onSurface) },
-        modifier = Modifier.fillMaxWidth(),
+        label = { Text(text = label, color = MaterialTheme.colors.onSurface) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.surface), // Optional — applies to full row
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        colors = OutlinedTextFieldDefaults.colors(
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedLabelColor = MaterialTheme.colorScheme.primary,
-            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            textColor = MaterialTheme.colors.onSurface,
+            backgroundColor = MaterialTheme.colors.surface, // ✅ background inside the field
+            focusedBorderColor = MaterialTheme.colors.primary,
+            unfocusedBorderColor = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
+            cursorColor = MaterialTheme.colors.primary,
+            focusedLabelColor = MaterialTheme.colors.primary,
+            unfocusedLabelColor = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
         )
     )
 }
+

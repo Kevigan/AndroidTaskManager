@@ -6,16 +6,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.LocalContentColor
+import androidx.compose.material.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModelProvider
-import com.example.taskmanager.ViewModels.SettingsViewModel
+import com.example.taskmanager.Views.TestView
 import com.example.taskmanager.ui.theme.TaskManagerTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -27,13 +27,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val settingsViewModel = ViewModelProvider(
-            this,
-            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
-        )[SettingsViewModel::class.java]
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
         setContent {
-            val isDarkTheme by settingsViewModel.isDarkTheme.collectAsState(initial = false)
             val context = LocalContext.current
 
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -55,35 +51,34 @@ class MainActivity : ComponentActivity() {
 
                     FirebaseAuth.getInstance().signInWithCredential(credential)
                         .addOnSuccessListener {
-                            Toast.makeText(context, "Signed in with Google", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Signed in with Google", Toast.LENGTH_SHORT)
+                                .show()
                         }
                         .addOnFailureListener {
-                            Toast.makeText(context, "Google sign-in failed: ${it.message}", Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                context,
+                                "Google sign-in failed: ${it.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
-
                 } catch (e: ApiException) {
-                    Toast.makeText(context, "Google sign-in error: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Google sign-in error: ${e.message}", Toast.LENGTH_LONG)
+                        .show()
                 }
             }
-
-
-            TaskManagerTheme(darkTheme = isDarkTheme) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Navigation(
-                        settingsViewModel = settingsViewModel,
-                        googleSignInClient = googleSignInClient,
-                        googleSignInLauncher = launcher
-                    )
+            CompositionLocalProvider(LocalContentColor provides Color.Black) {
+                TaskManagerTheme() {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color.White
+                    ) {
+                        Navigation(
+                            googleSignInClient = googleSignInClient,
+                            googleSignInLauncher = launcher
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-
-
-
-
